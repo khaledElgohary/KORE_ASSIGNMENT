@@ -1,0 +1,16 @@
+ UserID,FullName,Age,Email,RegistrationDate,LastLoginDate,PurchaseTotal
+111,Alice Johnson,,alicejohnson@example.com,2022-07-15,--,
+112,Bob Marley,27,bobmarley@example.com,2021-05-20,2023-02-28,
+,Null User,25,,2020-12-01,2023-02-25,100
+115,Eva Green,,evagreen@example.com,2018-08-22,2023-02-23,
+121,Kevin Yolt,,kevinyolt@example.com,2021-03-14,2023-02-17,
+112,Bob Marley,27,bobmarley@example.com,2021-05-20,2023-02-28,
+130,Invalid Date,29,invaliddatetest@example.com,2022-02-30,2023-02-08,180
+134,Negative Age,-1,negativeage@example.com,2021-08-15,2023-02-04,130
+133,Future Date,25,futuredate@example.com,2024-01-01,2025-01-02,160
+135,Very Old Date,90,veryolddate@example.com,1920-01-01,2023-02-03,100
+101,John Doe,30,johndoe@example.com,2024-01-10,2023-03-01,250
+113,Cathy Smith,,cathysmith@example.com,2019-10-12,2023-02-27,210.5
+137,Incorrect Email,28,,2021-11-11,2023-02-01,190
+136,Extra Large Total,27,extralargetotal@example.com,2020-10-10,2023-02-02,1000000
+131,Special Characters Name,34,special$$name@example.com,2021-04-17,2023-02-07,200.5
