@@ -22,7 +22,7 @@ In this repo there is all the files related to the SSIS code for ETL pipeline, a
 
 ### CSV source and destination
 - There is 2 Flat file Source/Destination components in the data flow "Data Extraction and Type Standardization" .
-- First is the initial extraction for the csv file.
+- First is the initial extraction of the csv file.
 - Right click on the Flat File Source and click edit, then click on new and browse the file the data will be imported from, then navigate to columns and make sure all the columns are checked out and included.
 - Second is the flat file destination for the rows getting sent back for review.
 - right click on the Flat File destination, then click new connection and choose the csv file you created that will host the redirected rows.
@@ -127,9 +127,9 @@ truncate table [stg].Users
 
 # Approach and methodologies used 
 ## Extraction and data conversion
-- First, a csv was manually created to copy and paste data from the provided pdf document, and data was split in rows and columns in the csv file based on the delimiter. I'm aware this could have been done in SSIS, but it in excel it was very simple to do.
+- First, a csv was manually created to copy and paste data from the provided pdf document, and data was split in rows and columns in the csv file based on the delimiter. I'm aware this could have been done in SSIS, but in excel it was very simple to do.
 - After data was extracted, before attempting to do any data type conversions, there was a few columns that needed to have some their format changed.
-- Columns with format changing were have derived columns with their fixed formatting. 
+- Columns with format changing have derived columns with their fixed formatting. 
 ### Date Format
 - It was clear that there's some fields in the RegistrationDate and LastLoginDate column that had a different format than the others.
 - Most dates had the format YYYY-MM-DD, while a few had the format DD/MM/YYYY.
@@ -140,10 +140,10 @@ truncate table [stg].Users
 - UserID as well only needed a simple string manipulation and data verification.
 - I first checked if the LEN(UserID)>6, or else the UserID is only ''''''.
 - If this check yields a true state, then Subtring will be processed to only extract the digits in the fields.
-- However, later I realized that while most UserIDs have 3 digits, this won't always be the case this ETL pipeline was processed for other data from same source, hence the Length check was only for length 6 since we can have the UserID starting from only 1 digit ( ex. 1,2,3, ---> 11,12,15 ---> 100,101,103).
+- However, later I realized that while most UserIDs have 3 digits, this won't always be the case if this ETL pipeline was processed for other data from same source, hence the Length check was only for length 6 since we can have the UserID starting from only 1 digit ( ex. 1,2,3, ---> 11,12,15 ---> 100,101,103).
 ### Email Format
 - Verifying emails format was one of the challenges I had in this project.
-- Emails do need to have a standard format which is local-part@domain.
+- Emails do need to have a standard format which is local-part@domain.domainSuffix
 - My Email verification was divided into the 2 steps.
 - For sake of simplicity, since this is a DB from a client source, and most of their users email address will follow the same domain and domain suffix. Then the most suitable verification is to check that there's only 1 occurence of example.com.
 - Further testing will be discussed after the data conversion step.
@@ -231,11 +231,29 @@ public override void Input0_ProcessInputRow(Input0Buffer Row)
 
 
 ## Duplicate checks and Incremental load
-- To start off, since each user has a unique userID, hence userID is the most suitable column that can be used for dublicate checks.
-- The staging table itself contained 3 rows that were dublicates( John Doe user ID 101), and one of them was redirected for review since it failed on of the checks.
-- The other 2 rows were identified using Lookup component, for comparison with the production table values on column UserID
-- The rows without a match were redirected for insertion into the Production table, and the rows with a match were redirected to and OLE DB Command component for update.
+- To start off, since each user has a unique userID, hence userID is the most suitable column that can be used for duplicate checks.
+- The staging table itself contained 3 rows that were duplicates( John Doe user ID 101), and one of them was redirected for review since it failed on of the checks.
+- The other 2 rows were identified using Lookup component, for comparison with the production table values on column UserID.
+- The rows without a match were redirected for insertion into the Production table, and the rows with a match were redirected to an OLE DB Command component for update.
 - The 2 duplicated rows had different values for each registrationDate and PurchaseTotal.
-- However, I decided to the record in production based upon the newest registrationDate in the staging table.
+- However, I decided to update the record in production based upon the newest registrationDate in the staging table.
+- Below is the T-SQL script for record updating
+```
+UPDATE [prod].Users
+SET
+      FullName=src.FullName,
+      Age= src.Age,
+      Email=src.Email,
+      RegistrationDate=src.RegistrationDate,
+      LastLoginDate=src.LastLoginDate,
+      PurchaseTotal=src.PurchaseTotal
+FROM [prod].Users AS prod
+JOIN(
+    SELECT TOP 1*
+    FROM [stg].Users
+    ORDER BY RegistrationDate DESC
+) AS src
+ON prod.userID = src.UserID
+```
 - Since there was no domain knowledge provided, no aggregation was done on PurchaseTotal, but it could have been an option if requested by client to combine the new registeration and old registration purchaseTotal and SUM them.
 - Finally, there could have been duplicated record in the staging table, for which I could have sorted on userID and removed duplicates. But since sorting is an expensive operation, and also dependent on whether or not there's hashing involved on this column, it was best to be avoided in this scenario.
