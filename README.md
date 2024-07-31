@@ -39,7 +39,7 @@ In this repo there is all the files related to the SSIS code for ETL pipeline, a
 
 ### Lookup component
 - You will need to edit connection in the lookup component in the dataflow "Duplicates check and Loading to Production".
-- Right click on lookup, click eidt, make sure connection type is OLE DB, then navigate to connections on the left panel, click New and follow same process for OLE DB source and destination connection configuration.
+- Right click on lookup, click edit, make sure connection type is OLE DB, then navigate to connections on the left panel, click New and follow same process for OLE DB source and destination connection configuration.
 - Make sure to select the table to be [prod].Users . 
 
 ### DB Backup component
