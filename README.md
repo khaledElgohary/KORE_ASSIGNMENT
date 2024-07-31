@@ -37,6 +37,11 @@ In this repo there is all the files related to the SSIS code for ETL pipeline, a
 - Connection will need to be checked also for the OLE DB Command component.
 - Right click on the OLE DB Command, then click on edit, and then select DB name from the Connection Manager drop down menu.
 
+# Lookup component
+- You will need to edit connection in the lookup component in the dataflow "Duplicates check and Loading to Production".
+- Right click on lookup, click eidt, make sure connection type is OLE DB, then navigate to connections on the left panel, click New and follow same process for OLE DB source and destination connection configuration.
+- Make sure to select the table to be [prod].Users . 
+
 ### DB Backup component
 - A zip file containing the database backup is already included in my repo.
 - However, it's optional to disable the backup component in control flow if it's not needed. By default I have turned off this component since the DB has already been backed up.
