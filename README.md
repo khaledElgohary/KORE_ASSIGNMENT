@@ -23,7 +23,7 @@ In this repo there is all the files related to the SSIS code for ETL pipeline, a
 ### CSV source and destination
 - There is 2 Flat file Source/Destination components in the data flow "Data Extraction and Type Standardization" .
 - First is the initial extraction for the csv file.
-- Right click on the Flat File Source and click edit, then select the file name the data will be imported from, then navigate to columns and make sure all the columns are checked out and included.
+- Right click on the Flat File Source and click edit, then click on new and browse the file the data will be imported from, then navigate to columns and make sure all the columns are checked out and included.
 - Second is the flat file destination for the rows getting sent back for review.
 - right click on the Flat File destination, then click new connection and choose the csv file you created that will host the redirected rows.
 
