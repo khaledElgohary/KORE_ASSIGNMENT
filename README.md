@@ -12,12 +12,30 @@ In this repo there is all the files related to the SSIS code for ETL pipeline, a
 - If your preference is running the initial DB script in SSMS, then simply navigate to Control Flow, then right click on the Initizalize DB component.
 - Then select Edit, and double click the 3 dots button in the SQLStatement field.
 - Copy and paste the SQL script to a new query in your SSMS server, then run the query to intialize DB.
-- Make sure to disable the Initialize DB component in the control flow to prevent running script twice 
+- Make sure to disable the Initialize DB component in the control flow to prevent running script twice, except in case of testing you can enable it since it executes the tables truncation.
 
 ### Running the DB initialization using the Execute SQL Task component.
 - By default, I have an SQL Task component that is responsible for the Initialization of the DB in the control flow.
 - Right click on the component and click on edit.
-- Make sure under SQL Statement that the Connection is corresponding with your SQL server connection, and that your connection type is OLE DB
+- Make sure under SQL Statement that the Connection is corresponding with your SQL server connection, and that your connection type is OLE DB.
+- Please run package first with all other components disabled in the control flow to create database and initalize it.
+
+### CSV source and destination
+- There is 2 Flat file Source/Destination components in the data flow "Data Extraction and Type Standardization" .
+- First is the initial extraction for the csv file.
+- Right click on the Flat File Source and click edit, then select the file name the data will be imported from, then navigate to columns and make sure all the columns are checked out and included.
+- Second is the flat file destination for the rows getting sent back for review.
+- right click on the Flat File destination, then click new connection and choose the csv file you created that will host the redirected rows.
+
+### OLE DB source and destination
+- Whether you optioned to create and initialize database using SSMS or the SQL Execute Task component in SSIS, please make sure to edit your connections.
+- For the data flow "Data Extraction and Type Standardization" right click on the OLE DB destination and choose edit.
+- Click on New next to OLE DB connection manager, and then new.
+- Select Provider to be Microsoft OLE DB Driver for SQL Server, then enter your Server name and select initial catalog which is database name that should be KoreAssignment_{Khaled_Elgohary} then click ok.
+- Then you will be able to view the tables, and will need to select [stg].Users table.
+- Same process will be applied for the connections in the "Duplicates check and Loading to Production" component, except in the OLE DB Destination your target table will be [prod].Users.
+- Connection will need to be checked also for the OLE DB Command component.
+- Right click on the OLE DB Command, then click on edit, and then select DB name from the Connection Manager drop down menu. 
 
 ### DB initialization Script
 Below is the script that executes everytime the ETL pipeline is ran. 2 lines were added which just truncates the staging and production table for every run. 
@@ -217,41 +235,3 @@ public override void Input0_ProcessInputRow(Input0Buffer Row)
 - However, I decided to the record in production based upon the newest registrationDate in the staging table.
 - Since there was no domain knowledge provided, no aggregation was done on PurchaseTotal, but it could have been an option if requested by client to combine the new registeration and old registration purchaseTotal and SUM them.
 - Finally, there could have been duplicated record in the staging table, for which I could have sorted on userID and removed duplicates. But since sorting is an expensive operation, and also dependent on whether or not there's hashing involved on this column, it was best to be avoided in this scenario.
-
-
-# Summary of Results
-## Rows Extracted versus Loaded
-- 33 rows were extracted from staging table.
-- 15 rows were excluded due to data quality issues and were sent back for review.
-- 18 rows extracted from staging table before duplication resolving and loading into production.
-- 2 rows reviewed for duplication.
-- 16 rows inserted into production table
-- 1 row updated in production table.
-- Total of 26 rows in production table after ETL pipeline exeuction.
-
-## Rows Excluded
-- UserID 111 excluded for missing Age, LastLoginDate, and PurchaseTotal.
-- UserID 112 excluded for missing PurchaseTotal.
-- Null User excluded for missing UserID and Email.
-- UserID 115 excluded for missing Age and PurchaseTotal.
-- UserID 121 excluded for missing Age and PurchaseTotal.
-- userID 130 excluded for invalid date.
-- userID 134 excluded for having a negative age.
-- userID 133 excluded for having LastLoginDate>currentDate.
-- userID 135 excluded for having invalid (very old) RegistrationDate.
-- userID 101 John Doe ( 1 of 3 duplicates) excluded for having RegistrationDate>LastLoginDate.
-- userID 113 excluded for missing Age.
-- userID 137 excluded for having invalid email address.
-- userID 136 excluded for OutOfBound PurchaseTotal.
-- userID 131 excluded for invalid email address ( consecutive special characters in email local-part).
-
-## Rows that should be excluded
-- As discussed above, it would have been easier to exclude the old date format, but since the string manipulation was easier due to the fact the csv data types were generalized to string, I made the decision to include it and not exclude it.
-- UserID 138 should have had a matching ID due to it's name. However, there were no matches found for this userID and hence it was not excluded.
-
-## Challenges Faced
-- Rigorous check on email address was needed for safe validation of the email format.
-- PurchaseTotal large value exclusion took a very long decision time for me, the value being an outlier wasn't sufficient for the exclusion, but in comparison with other values of PurchaseTotal it would suffice to include it as invalid. However, with enough data for statistical tests and more domain knowledge it would have been easier to make this exlusion decision.
-- PurchaseTotal data type conversion was challenging to decide, knowing that the database could scale to a larger one made the decision easier by optioning for the smaller size data type ( 4 bytes vs 5 bytes). However, float is less precise than decimal which also works well for the purpose of the PurchaseTotal data.
-- FullName check wasn't challenge but involved a lot of thinking. The safer option would be to assume that the user can have the option to input their middle name, which led me to use the criteria of TOKENCOUNT==3 or 2.
-- For the purpose of this inteview process, i was not sure if splitting the columns in Excel versus SSIS was acceptable or not. But since both of them are easily achievable i decided to split the data in excel before extracting them in SSIS.
