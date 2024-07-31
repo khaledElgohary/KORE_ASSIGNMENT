@@ -35,7 +35,11 @@ In this repo there is all the files related to the SSIS code for ETL pipeline, a
 - Then you will be able to view the tables, and will need to select [stg].Users table.
 - Same process will be applied for the connections in the "Duplicates check and Loading to Production" component, except in the OLE DB Destination your target table will be [prod].Users.
 - Connection will need to be checked also for the OLE DB Command component.
-- Right click on the OLE DB Command, then click on edit, and then select DB name from the Connection Manager drop down menu. 
+- Right click on the OLE DB Command, then click on edit, and then select DB name from the Connection Manager drop down menu.
+
+### DB Backup component
+- A zip file containing the database backup is already included in my repo.
+- However, it's optional to disable the backup component in control flow if it's not needed. By default I have turned off this component since the DB has already been backed up.
 
 ### DB initialization Script
 Below is the script that executes everytime the ETL pipeline is ran. 2 lines were added which just truncates the staging and production table for every run. 
